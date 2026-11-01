@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en-CA">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="robots" content="noindex">
+  <meta name="theme-color" content="#efeae2">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="Budget">
+  <title>Household budget</title>
+  <link rel="stylesheet" href="/static/styles.css?v=2">
+</head>
+<body>
+  <div id="login-view">
+    <form id="login-form" class="login-card stack">
+      <p class="eyebrow">Household budget</p>
+      <h1>Sign in</h1>
+      <p class="hint">Use the shared password on any phone or computer.</p>
+      <label class="field">
+        <span>Password</span>
+        <input id="login-password" type="password" autocomplete="current-password" required>
+      </label>
+      <p id="login-error" class="error" role="alert"></p>
+      <button class="primary" type="submit">Continue</button>
+    </form>
+  </div>
+
+  <div id="app-view" class="shell" hidden>
+    <header class="mast">
+      <p class="eyebrow">Household budget</p>
+      <h1 id="screen-title">Add</h1>
+    </header>
+
+    <main>
+      <section id="screen-add" class="stack">
+        <form id="entry-form" class="card stack">
+          <div class="segment" role="group" aria-label="Income or spending">
+            <button type="button" data-kind="income" aria-pressed="false">Income</button>
+            <button type="button" data-kind="spending" aria-pressed="true">Spending</button>
+          </div>
+          <label class="field">
+            <span>Date</span>
+            <input id="entry-date" type="date" required>
+          </label>
+          <label class="field">
+            <span>Amount (CAD)</span>
+            <span class="amount">
+              <span aria-hidden="true">$</span>
+              <input id="entry-amount" inputmode="decimal" autocomplete="off" placeholder="0.00" required>
+            </span>
+          </label>
+          <label class="field">
+            <span>Category</span>
+            <select id="entry-category" required></select>
+          </label>
+          <label class="field">
+            <span>Notes</span>
+            <textarea id="entry-notes" rows="2" maxlength="500" placeholder="Optional"></textarea>
+          </label>
+          <p id="form-error" class="error" role="alert"></p>
+          <button id="save-entry" class="primary" type="submit">Save entry</button>
+          <button id="cancel-edit" class="secondary" type="button" hidden>Cancel</button>
+          <button id="delete-entry" class="danger" type="button" hidden>Delete entry</button>
+        </form>
+
+        <details class="panel">
+          <summary>Categories</summary>
+          <div class="stack panel-body">
+            <p class="hint">New categories use whichever of Income or Spending is selected above. Removing one hides it from new entries. Older entries keep it.</p>
+            <form id="category-form" class="category-add">
+              <label class="field">
+                <span>New category</span>
+                <input id="new-category" maxlength="40" autocomplete="off">
+              </label>
+              <button class="secondary" type="submit">Add category</button>
+            </form>
+            <p id="category-error" class="error" role="alert"></p>
+            <h2>On the dropdown</h2>
+            <ul id="active-categories" class="cat-list"></ul>
+            <h2>Hidden</h2>
+            <ul id="hidden-categories" class="cat-list"></ul>
+          </div>
+        </details>
+      </section>
+
+      <section id="screen-month" class="stack" hidden>
+        <div class="month-bar">
+          <button type="button" data-month-step="-1" aria-label="Previous month">Prev</button>
+          <h2 class="month-label"></h2>
+          <button type="button" data-month-step="1" aria-label="Next month">Next</button>
+        </div>
+        <p id="month-count" class="hint"></p>
+        <p id="month-hint" class="hint" hidden>Tap an entry to edit it.</p>
+        <div id="month-list" class="stack"></div>
+        <p id="month-empty" class="hint" hidden>No entries this month.</p>
+      </section>
+
+      <section id="screen-summary" class="stack" hidden>
+        <div class="month-bar">
+          <button type="button" data-month-step="-1" aria-label="Previous month">Prev</button>
+          <h2 class="month-label"></h2>
+          <button type="button" data-month-step="1" aria-label="Next month">Next</button>
+        </div>
+        <p class="hint">Canadian dollars</p>
+        <div class="totals">
+          <div><span>Income</span><strong id="total-income" class="income"></strong></div>
+          <div><span>Spending</span><strong id="total-spending" class="spending"></strong></div>
+          <div><span>Net</span><strong id="total-net"></strong></div>
+        </div>
+        <p id="difference-text" class="difference"></p>
+        <div id="compare" class="stack"></div>
+        <h2>Income</h2>
+        <div id="income-bars" class="stack"></div>
+        <h2>Spending</h2>
+        <div id="spending-bars" class="stack"></div>
+      </section>
+
+      <section id="screen-export" class="stack" hidden>
+        <div class="month-bar">
+          <button type="button" data-month-step="-1" aria-label="Previous month">Prev</button>
+          <h2 class="month-label"></h2>
+          <button type="button" data-month-step="1" aria-label="Next month">Next</button>
+        </div>
+        <p class="hint">The report is Markdown for a person or another agent. The data file is JSON for a program. Amounts are Canadian dollars.</p>
+        <button id="download-md" class="primary" type="button">Download report</button>
+        <button id="download-json" class="secondary" type="button">Download data</button>
+        <pre id="report-preview" class="report"></pre>
+        <button id="lock-button" class="text-button lock" type="button">Lock</button>
+      </section>
+    </main>
+
+    <nav class="tabs" aria-label="Sections">
+      <button class="tab" type="button" data-screen="add" aria-current="page">Add</button>
+      <button class="tab" type="button" data-screen="month">Month</button>
+      <button class="tab" type="button" data-screen="summary">Summary</button>
+      <button class="tab" type="button" data-screen="export">Export</button>
+    </nav>
+  </div>
+
+  <noscript>This budget needs JavaScript.</noscript>
+  <script src="/static/app.js?v=2"></script>
+</body>
+</html>

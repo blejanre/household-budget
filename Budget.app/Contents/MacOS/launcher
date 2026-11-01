@@ -1,0 +1,180 @@
+#!/bin/bash
+ROOT="$(cd "$(dirname "$0")/../../.." && pwd)"
+cd "$ROOT"
+mkdir -p data
+LOG="$ROOT/data/server.log"
+URL="http://127.0.0.1:8000"
+
+export PATH="/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin:$PATH"
+
+alert() {
+  /usr/bin/osascript -e 'on run argv
+    display dialog (item 1 of argv) buttons {"OK"} default button 1 with title "Budget"
+  end run' "$1" >/dev/null 2>&1 || true
+}
+
+notify() {
+  /usr/bin/osascript -e 'on run argv
+    display notification (item 1 of argv) with title "Budget"
+  end run' "$1" >/dev/null 2>&1 || true
+}
+
+find_python() {
+  local c f
+  for c in \
+    /usr/local/bin/python3 \
+    /opt/homebrew/bin/python3 \
+    /Library/Frameworks/Python.framework/Versions/Current/bin/python3
+  do
+    if [ -x "$c" ]; then
+      printf '%s\n' "$c"
+      return 0
+    fi
+  done
+  for f in /Library/Frameworks/Python.framework/Versions/*/bin/python3; do
+    if [ -x "$f" ]; then
+      printf '%s\n' "$f"
+      return 0
+    fi
+  done
+  if command -v python3 >/dev/null 2>&1; then
+    command -v python3
+    return 0
+  fi
+  return 1
+}
+
+open_budget() {
+  /usr/bin/open "$URL"
+}
+
+if /usr/bin/curl -sf "$URL/health" >/dev/null 2>&1; then
+  open_budget
+  exit 0
+fi
+
+if ! mkdir data/start.lock 2>/dev/null; then
+  for _ in 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34 35 36 37 38 39 40; do
+    if /usr/bin/curl -sf "$URL/health" >/dev/null 2>&1; then
+      open_budget
+      exit 0
+    fi
+    sleep 0.5
+  done
+  rmdir data/start.lock 2>/dev/null || true
+  alert "Budget is still starting. Click Budget again in a moment."
+  exit 1
+fi
+trap 'rmdir "$ROOT/data/start.lock" 2>/dev/null || true' EXIT
+
+PYTHON="$(find_python || true)"
+if [ -z "$PYTHON" ]; then
+  alert "This Mac needs Python 3 before Budget can run. A download page will open. Install Python, then click Budget again."
+  /usr/bin/open "https://www.python.org/downloads/"
+  exit 1
+fi
+
+if [ ! -d .venv ]; then
+  notify "Setting up Budget. The first time takes a minute."
+  if ! "$PYTHON" -m venv .venv >>"$LOG" 2>&1; then
+    alert "Budget could not finish setting up. Install Python 3 from python.org, then click Budget again."
+    exit 1
+  fi
+  if ! .venv/bin/python -m pip install -r requirements.txt >>"$LOG" 2>&1; then
+    alert "Budget could not finish setting up. Install Python 3 from python.org, then click Budget again."
+    exit 1
+  fi
+fi
+
+if [ ! -f .env ]; then
+  secret="$("$PYTHON" -c "import secrets; print(secrets.token_hex(32))")"
+  printf '%s\n' \
+    "APP_PASSWORD=replace-with-a-shared-password" \
+    "SESSION_SECRET=${secret}" \
+    "BUDGET_DB=data/budget.db" \
+    > .env
+fi
+
+"$PYTHON" - <<'PY' >>"$LOG" 2>&1
+from pathlib import Path
+import sys
+
+vals = {}
+for line in Path(".env").read_text(encoding="utf-8").splitlines():
+    line = line.strip()
+    if not line or line.startswith("#") or "=" not in line:
+        continue
+    key, value = line.split("=", 1)
+    value = value.strip()
+    if len(value) >= 2 and value[0] == value[-1] and value[0] in "\"'":
+        value = value[1:-1]
+    vals[key.strip()] = value
+password = vals.get("APP_PASSWORD", "")
+secret = vals.get("SESSION_SECRET", "")
+if (
+    not password
+    or password.startswith("replace-with")
+    or not secret
+    or secret.startswith("replace-with")
+    or len(secret) < 16
+):
+    sys.exit(2)
+PY
+status=$?
+if [ "$status" -eq 2 ]; then
+  alert "Choose a password you both will type. A file will open. Replace the sample password, save the file, close it, and click Budget again."
+  /usr/bin/open -e "$ROOT/.env"
+  exit 1
+fi
+if [ "$status" -ne 0 ]; then
+  alert "Budget could not read its settings file. Click Budget again."
+  exit 1
+fi
+
+PY=".venv/bin/python"
+if [ -x .venv/bin/pythonw ]; then
+  PY=".venv/bin/pythonw"
+fi
+
+if [ -f data/budget-server.pid ]; then
+  old="$(tr -d '[:space:]' < data/budget-server.pid || true)"
+  if [ -n "$old" ]; then
+    kill "$old" 2>/dev/null || true
+    sleep 0.2
+  fi
+fi
+
+.venv/bin/python - "$ROOT" "$ROOT/data/budget-server.pid" "$LOG" "$PY" <<'PY'
+import os
+import sys
+
+root, pidfile, logfile, program = sys.argv[1:]
+if os.fork() > 0:
+    os._exit(0)
+os.setsid()
+child = os.fork()
+if child > 0:
+    with open(pidfile, "w", encoding="utf-8") as handle:
+        handle.write(str(child))
+    os._exit(0)
+os.chdir(root)
+log = os.open(logfile, os.O_WRONLY | os.O_CREAT | os.O_APPEND, 0o644)
+os.dup2(log, 1)
+os.dup2(log, 2)
+os.execv(program, [program, "-m", "uvicorn", "app.main:app", "--host", "127.0.0.1", "--port", "8000"])
+PY
+
+for _ in 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34 35 36 37 38 39 40; do
+  if /usr/bin/curl -sf "$URL/health" >/dev/null 2>&1; then
+    open_budget
+    if [ ! -f data/dock-hint-shown ]; then
+      touch data/dock-hint-shown
+      alert "Budget is open in the browser. Drag the Budget icon onto the Dock at the bottom of the screen. Next time, click that icon."
+    fi
+    exit 0
+  fi
+  sleep 0.25
+done
+
+alert "Budget did not open. If the settings file still has the sample password, replace it and click Budget again."
+exit 1

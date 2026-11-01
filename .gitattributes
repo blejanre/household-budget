@@ -1,1 +1,3 @@
 *.command text eol=lf
+Budget.app/Contents/MacOS/launcher text eol=lf
+Budget.app/Contents/Info.plist text eol=lf

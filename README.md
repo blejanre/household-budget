@@ -15,13 +15,13 @@ Double-click the zip to unpack it. You will get a folder named `household-budget
 ## First time
 
 1. If the Mac does not already have Python 3, install it from [python.org](https://www.python.org/downloads/).
-2. In Finder, double-click `Start Budget.command`.
-3. If the Mac says it cannot be opened, right-click the file, choose Open, then Open again.
-4. The first run creates a file named `.env`. Open that file, replace the sample password with the password you both will type, save it, and double-click `Start Budget.command` again.
+2. In Finder, double-click `Start Budget.command` once. If the Mac says it cannot be opened, right-click that file, choose Open, then Open again.
+3. The first run creates a settings file. Replace the sample password with the password you both will type, save, close the file, and click the Budget icon again.
+4. Drag the Budget icon onto the Dock, the bar of icons at the bottom of the screen. Leave the folder where it is. The Dock icon points at that folder.
 
-The window that opens has to stay open while you use the budget. It will open http://127.0.0.1:8000 in the browser. That address works only on this MacBook.
+After that, click Budget on the Dock. The budget opens in the browser. You can close the browser when you are finished. The entries stay in `data/budget.db`. Click the Dock icon the next time you want to add something.
 
-Close the window when you are finished. The entries stay in `data/budget.db`.
+If the Dock icon does not open, double-click `Start Budget.command` once more, then try the Dock icon again.
 
 ## What you can do
 

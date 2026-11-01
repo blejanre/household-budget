@@ -6,9 +6,11 @@ The entries are stored in `data/budget.db` inside this folder on that Mac. Copy 
 
 ## Put it on the MacBook
 
-Copy this folder onto the MacBook with a USB stick or AirDrop. Leave the `.venv` folder behind. That copy was made for Windows and will not run on a Mac.
+On the Mac, download this zip:
 
-On the Mac, put the folder somewhere you can find again, such as Documents.
+https://github.com/blejanre/household-budget/archive/refs/heads/main.zip
+
+Double-click the zip to unpack it. You will get a folder named `household-budget-main`. Move that folder somewhere you can find again, such as Documents.
 
 ## First time
 

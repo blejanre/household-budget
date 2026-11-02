@@ -14,18 +14,24 @@ A zip downloaded in the browser will not open. The Mac shows a warning that Appl
 ```bash
 curl -L -o "$HOME/Documents/household-budget.zip" https://github.com/blejanre/household-budget/archive/refs/heads/main.zip
 unzip -o "$HOME/Documents/household-budget.zip" -d "$HOME/Documents"
-chmod +x "$HOME/Documents/household-budget-main/Budget.app/Contents/MacOS/launcher"
 xattr -dr com.apple.quarantine "$HOME/Documents/household-budget-main"
-open "$HOME/Documents/household-budget-main/Budget.app"
+mkdir -p "$HOME/Applications"
+cat > /tmp/BudgetLauncher.applescript <<'EOF'
+do shell script "nohup /bin/bash " & quoted form of ((POSIX path of (path to home folder)) & "Documents/household-budget-main/Budget.app/Contents/MacOS/launcher") & " >/tmp/household-budget-launch.log 2>&1 &"
+EOF
+osacompile -o "$HOME/Applications/Budget.app" /tmp/BudgetLauncher.applescript
+cp "$HOME/Documents/household-budget-main/Budget.app/Contents/Resources/AppIcon.icns" "$HOME/Applications/Budget.app/Contents/Resources/applet.icns"
+bash "$HOME/Documents/household-budget-main/Budget.app/Contents/MacOS/launcher"
+open "$HOME/Applications"
 ```
 
-The folder is now in Documents and is named `household-budget-main`. You can trash the copy that the browser downloaded.
+The program folder is in Documents and is named `household-budget-main`. The icon you drag to the Dock is the Budget icon in the Applications window that opens. You can trash the copy that the browser downloaded.
 
 ## First time
 
 1. If a message says the Mac needs Python 3, install it from [python.org](https://www.python.org/downloads/), then click the Budget icon again.
 2. A settings file opens. Replace the sample password with the password you both will type, save, close the file, and click the Budget icon again.
-3. Drag the green Budget icon onto the Dock, the bar of icons at the bottom of the screen. Leave the folder in Documents. The Dock icon points at that folder.
+3. An Applications window opens. Drag the Budget icon from that window onto the Dock. Leave the `household-budget-main` folder in Documents. The Dock icon uses that folder.
 
 After that, click Budget on the Dock. The budget opens in the browser. You can close the browser when you are finished. The entries stay in `data/budget.db`. Click the Dock icon the next time you want to add something.
 

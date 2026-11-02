@@ -6,22 +6,28 @@ The entries are stored in `data/budget.db` inside this folder on that Mac. Copy 
 
 ## Put it on the MacBook
 
-On the Mac, download this zip:
+A zip downloaded in the browser will not open. The Mac shows a warning that Apple could not verify the file, and right-click Open does not get past it. Download it from Terminal instead.
 
-https://github.com/blejanre/household-budget/archive/refs/heads/main.zip
+1. Press Command (⌘) and the space bar together. Type Terminal and press Return.
+2. Click in the Terminal window, paste this, and press Return:
 
-Double-click the zip to unpack it. You will get a folder named `household-budget-main`. Move that folder somewhere you can find again, such as Documents.
+```bash
+curl -L -o "$HOME/Documents/household-budget.zip" https://github.com/blejanre/household-budget/archive/refs/heads/main.zip
+unzip -o "$HOME/Documents/household-budget.zip" -d "$HOME/Documents"
+chmod +x "$HOME/Documents/household-budget-main/Budget.app/Contents/MacOS/launcher"
+xattr -dr com.apple.quarantine "$HOME/Documents/household-budget-main"
+open "$HOME/Documents/household-budget-main/Budget.app"
+```
+
+The folder is now in Documents and is named `household-budget-main`. You can trash the copy that the browser downloaded.
 
 ## First time
 
-1. If the Mac does not already have Python 3, install it from [python.org](https://www.python.org/downloads/).
-2. In Finder, double-click `Start Budget.command` once. If the Mac says it cannot be opened, right-click that file, choose Open, then Open again.
-3. The first run creates a settings file. Replace the sample password with the password you both will type, save, close the file, and click the Budget icon again.
-4. Drag the Budget icon onto the Dock, the bar of icons at the bottom of the screen. Leave the folder where it is. The Dock icon points at that folder.
+1. If a message says the Mac needs Python 3, install it from [python.org](https://www.python.org/downloads/), then click the Budget icon again.
+2. A settings file opens. Replace the sample password with the password you both will type, save, close the file, and click the Budget icon again.
+3. Drag the green Budget icon onto the Dock, the bar of icons at the bottom of the screen. Leave the folder in Documents. The Dock icon points at that folder.
 
 After that, click Budget on the Dock. The budget opens in the browser. You can close the browser when you are finished. The entries stay in `data/budget.db`. Click the Dock icon the next time you want to add something.
-
-If the Dock icon does not open, double-click `Start Budget.command` once more, then try the Dock icon again.
 
 ## What you can do
 
